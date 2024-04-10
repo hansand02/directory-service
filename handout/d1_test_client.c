@@ -35,7 +35,7 @@ int main( int argc, char* argv[] )
         return -1;
     }
 
-    char*    server_name = argv[2];
+    char*    server_name = argv[1];
     uint16_t server_port = atoi(argv[2] );
 
     /* Create a suitable data structure to manage the assocation of this client
