@@ -1,5 +1,11 @@
 These binaries were built for Intel Linux machine running Ubuntu 22.04.
 
+d1_dump:
+  This binary tries to analyze the D1 layer of your packets.
+  You can start it with a given port, and send UDP packets to it.
+  It will attempt to parse the first 8 bytes (the D1 header) and print out whether
+  the header fields look reasonable.
+
 d1_server:
   This binary is a server that the client d1_test_client should connect to.
   You start it with a UDP port.
