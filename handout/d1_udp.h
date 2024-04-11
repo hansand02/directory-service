@@ -99,6 +99,8 @@ int d1_get_peer_info( struct D1Peer* client, const char* servername, uint16_t se
 
 /** If the buffer does not exceed the packet size, send add the D1 header and send
  *  it to the peer.
+ *  Returns the number of bytes sent in case of success, and a negative value in case
+ *  of error.
  */
 int  d1_send_data( struct D1Peer* peer, char* buffer, size_t sz );
 
@@ -109,6 +111,7 @@ int  d1_send_data( struct D1Peer* peer, char* buffer, size_t sz );
  *  (0->1 or 1->0) and returns to the caller.
  *  If the sequence number does not match, d1_send_data followed by d1_wait_ack is called
  *  again.
+ *  Returns a positive value in case of success, and a negative value in case of error.
  *
  *  This function is only meant to be called by d1_send_data. You don't have to implement it.
  */
@@ -118,8 +121,10 @@ int  d1_wait_ack( D1Peer* peer, char* buffer, size_t sz );
  *  size indicated in the header is correct and if the checksum is correct.
  *  If size or checksum are incorrect, an ACK with the opposite value is sent (this should
  *  trigger the sender to retransmit).
- *  In other cases, an error message is printed and a negative number if returned to the
+ *  In other cases, an error message is printed and a negative number is returned to the
  *  calling function.
+ *  Returns the number of bytes received in case of success, and a negative value in case
+ *  of error.
  */
 int  d1_recv_data( struct D1Peer* peer, char* buffer, size_t sz );
 
