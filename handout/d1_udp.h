@@ -22,15 +22,15 @@
  * - flags comprises 16 bits with the following meaning:
  *   bit 15: if true (1), this is a data packet. If it is false (0), this is not a
  *           data packet.
- *   bit 14: if true, this is an ACK packet.
- *   bit 13: if this is a data packet of connect packet, this contains the sequence
+ *   bit  8: if true, this is an ACK packet.
+ *   bit  7: if this is a data packet of connect packet, this contains the sequence
  *           number, which is either 0 or 1. If this is a disconnect or ACK packet,
  *           this is 0.
- *   bit 12: if this is an ACK packet, this bit contains the sequence number that is
+ *   bit  0: if this is an ACK packet, this bit contains the sequence number that is
  *           acknowledged (ie. it is a response to a data or connect packet).
- *   bits 11-0: always 0
+ *   bits 14-9 og 6-1: always 0
  *
- *   Only one of 14 or 15 can be 1.
+ *   Only one of 8 or 15 can be 1.
  *   Only data packets can contain data.
  * - checksum is computed by computing bit-wise XOR for all the fields flags, the upper
  *   and lower half of the size field, and (in case of a data packet), the entire data
