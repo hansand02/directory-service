@@ -133,6 +133,7 @@ D2Client* d2_client_delete( D2Client* client );
 int d2_send_request( D2Client* client, uint32_t id );
 
 /* Wait for a PacketResponseSize packet from the server.
+ *
  * Returns the number of NetNodes that will follow in several PacketReponse
  * packet in case of success. Note that this is _not_ the number of
  * PacketResponse packets that will follow because of PacketReponse can
@@ -145,7 +146,7 @@ int d2_recv_response_size( D2Client* client );
 /* Wait for a PacketResponse packet from the server.
  * The caller must provide a buffer where up to 1024 bytes can be stored.
  *
- * In case of success, the number of bytes receive is returned.
+ * Returns the number of bytes received in case of success.
  * The PacketResponse header and all NetNodes included in the packet
  * are stored in the buffer.
  *
