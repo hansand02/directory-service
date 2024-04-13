@@ -4,5 +4,5 @@
 
 13.4.2024
 - Corrected unclear wording in d1_send_data's comments.
-
+- Corrected checksum computation in all servers.
 
