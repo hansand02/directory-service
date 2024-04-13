@@ -67,7 +67,7 @@ struct D1Header
 typedef struct D1Header D1Header;
 
 /* These are the possible values of D1Header.flags in host byte order.
- * When you send D1Headers over the network, they must be send in network
+ * When you send D1Headers over the network, they must be sent in network
  * byte order.
  */
 #define FLAG_DATA       (1 << 15)
@@ -97,7 +97,7 @@ D1Peer* d1_delete( D1Peer* peer );
  */
 int d1_get_peer_info( struct D1Peer* client, const char* servername, uint16_t server_port );
 
-/** If the buffer does not exceed the packet size, send add the D1 header and send
+/** If the buffer does not exceed the packet size, the function adds the D1 header and sends
  *  it to the peer.
  *  Returns the number of bytes sent in case of success, and a negative value in case
  *  of error.
@@ -130,7 +130,7 @@ int  d1_recv_data( struct D1Peer* peer, char* buffer, size_t sz );
 
 /** Send an ACK for the given sequence number.
  */
-void d1_send_ack   ( struct D1Peer* peer, int seqno );
+void d1_send_ack( struct D1Peer* peer, int seqno );
 
 #endif /* D1_UDP_H */
 
