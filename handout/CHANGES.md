@@ -4,5 +4,6 @@
 
 13.4.2024
 - Corrected unclear wording in d1_send_data's comments.
-- Corrected checksum computation in all servers.
+- Corrected checksum computation in all servers. When the size of a packet was odd, the last byte was XORed with the wrong checksum byte.
+- Read [ChecksumExplanation.md](ChecksumExplanation.md) for more information.
 
