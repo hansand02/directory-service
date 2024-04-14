@@ -126,8 +126,9 @@ int  d1_wait_ack( D1Peer* peer, char* buffer, size_t sz );
  *  trigger the sender to retransmit).
  *  In other cases, an error message is printed and a negative number is returned to the
  *  calling function.
- *  Returns the number of bytes received in case of success, and a negative value in case
- *  of error.
+ *  Returns the number of bytes received as payload in case of success, and a negative value
+ *  in case of error. Empty data packets are allowed, and a return value of 0 is therefore
+ *  valid.
  */
 int  d1_recv_data( struct D1Peer* peer, char* buffer, size_t sz );
 
