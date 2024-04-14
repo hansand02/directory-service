@@ -16,7 +16,7 @@ ACK packet, ackno 0
         |  |  |  |  |  |  |  |
         |  |  |  |  +--+--+--+--- size in network byte order
         |  |  |  |
-        |  |  +--+--- checksum, uses the order of the packet
+        |  |  +--+--- checksum, uses the order of the packet, first byte is XOR of the odd bytes, second of the even bytes
         |  |
         +--+--- flags in network byte order
 
