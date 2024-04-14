@@ -1,4 +1,4 @@
-Checksum logic can be confusing and see weird, but the principleused here is the same as with real-world protocols:
+Checksum logic can be confusing and seem weird, but the principle used here is the same as with real-world protocols:
  - create the array of bytes exactly in the order that will be sent over the network (after conversion)
  - set the bytes in this array that will contain the checksum to 0
  - compute the checksum
