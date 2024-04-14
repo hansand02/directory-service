@@ -41,6 +41,6 @@ Data packet, paylod 3 bytes, payload[0]=0xff, payload[1]=0x0b, payload[2]=0x7f, 
 Data packet, paylod 3 bytes, payload[0]=0xfa, payload[1]=0x74, payload[2]=0x85, seqno 1
     -> 80 80 ff ff 00 00 00 0b fa 74 85
 
-Data packet, payload is uint32_t containing the value 65791 (hex 100ff) in network byte order, seqno 0
+Data packet, payload is uint32_t containing the value 65791 (hex 100ff) in network byte order, seqno 1
     -> 80 80 80 72 00 00 00 0c 00 01 00 ff
 ```
