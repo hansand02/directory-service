@@ -119,6 +119,9 @@ int  d1_wait_ack( D1Peer* peer, char* buffer, size_t sz );
 
 /** Call this to wait for a single packet from the peer. The function checks if the
  *  size indicated in the header is correct and if the checksum is correct.
+ *  In case of success, remove the D1 header and store only the payload in the buffer
+ *  that is passed a parameter. The size sz is the size of the buffer provided by the
+ *  caller.
  *  If size or checksum are incorrect, an ACK with the opposite value is sent (this should
  *  trigger the sender to retransmit).
  *  In other cases, an error message is printed and a negative number is returned to the
