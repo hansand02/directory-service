@@ -9,6 +9,7 @@ This is less weird when the checksum is in the trailer, but most modern protocol
 
 The following are examples of the byte sequences that are sent over the network for the given situations.
 
+```
 ACK packet, ackno 0
     -> 01 00 01 08 00 00 00 08
         ^  ^  ^  ^  ^  ^  ^  ^
@@ -42,4 +43,4 @@ Data packet, paylod 3 bytes, payload[0]=0xfa, payload[1]=0x74, payload[2]=0x85, 
 
 Data packet, payload is uint32_t containing the value 65791 (hex 100ff) in network byte order, seqno 0
     -> 80 80 80 72 00 00 00 0c 00 01 00 ff
-
+```
