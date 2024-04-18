@@ -1,0 +1,319 @@
+$ ./d2_server 12121
+66663: Created Lookup server - starting to loop
+66663: Waiting for a packet
+66663: Receiving a request packet
+66663: Received 16 bytes from 127.0.0.1
+66663: testing if data (8000) is set in flags (8000)
+header chk: 8010 total 83fe
+header chk: 8010 total 83fe
+66663: received a data packet with header 8000 10 83fe, size correct, good checksum
+66663: Sending an ACK packet, acking 0
+66663: Sending a packet
+66663: Received a request for ID 1007
+66663: creating a node (value 15118) for at least 5 children
+66663: creating a node (value 5533) for at least 3 children
+66663: creating a node (value 27925) for at least 2 children
+66663: creating a node (value 17774) for at least 0 children
+66663: creating a node (value 2043) for at least 0 children
+66663: creating a node (value 1926) for at least 1 children
+66663: creating a node (value 13439) for at least 0 children
+66663: creating a node (value 30454) for at least 2 children
+66663: creating a node (value 9945) for at least 0 children
+66663: creating a node (value 15274) for at least 1 children
+66663: creating a node (value 15274) for at least 1 children
+66663: creating a node (value 24369) without children
+66663: creating a node (value 10037) for at least 3 children
+66663: creating a node (value 20613) for at least 2 children
+66663: creating a node (value 10168) for at least 1 children
+66663: creating a node (value 2789) for at least 0 children
+66663: creating a node (value 24174) for at least 1 children
+66663: creating a node (value 7366) for at least 1 children
+66663: creating a node (value 5457) without children
+66663: creating a node (value 21690) for at least 1 children
+66663: creating a node (value 30193) for at least 0 children
+66663: creating a node (value 31823) for at least 2 children
+66663: creating a node (value 23252) for at least 1 children
+66663: creating a node (value 22696) for at least 0 children
+66663: creating a node (value 11660) for at least 0 children
+66663: creating a node (value 6660) for at least 3 children
+66663: creating a node (value 4220) for at least 2 children
+66663: creating a node (value 21353) for at least 1 children
+66663: creating a node (value 14600) for at least 1 children
+66663: creating a node (value 16463) without children
+66663: creating a node (value 3376) for at least 0 children
+66663: creating a node (value 205) for at least 1 children
+66663: creating a node (value 27020) for at least 0 children
+66663: creating a node (value 17618) for at least 2 children
+66663: creating a node (value 11142) for at least 1 children
+66663: creating a node (value 29085) for at least 0 children
+66663: creating a node (value 26340) for at least 1 children
+66663: creating a node (value 19803) for at least 1 children
+66663: creating a node (value 19765) without children
+66663: creating a node (value 26132) for at least 3 children
+66663: creating a node (value 6768) for at least 2 children
+66663: creating a node (value 24601) for at least 0 children
+66663: creating a node (value 24072) for at least 1 children
+66663: creating a node (value 25207) for at least 1 children
+66663: creating a node (value 26604) without children
+66663: creating a node (value 31577) for at least 2 children
+66663: creating a node (value 24773) for at least 1 children
+66663: creating a node (value 1592) for at least 1 children
+66663: creating a node (value 32458) without children
+66663: creating a node (value 30415) for at least 0 children
+66663: creating a node (value 8711) for at least 1 children
+66663: creating a node (value 17715) for at least 1 children
+66663: creating a node (value 11208) for at least 0 children
+66663: creating a node (value 15815) for at least 3 children
+66663: creating a node (value 17710) for at least 2 children
+66663: creating a node (value 16586) for at least 1 children
+66663: creating a node (value 17056) for at least 1 children
+66663: creating a node (value 20206) without children
+66663: creating a node (value 22432) for at least 1 children
+66663: creating a node (value 2990) for at least 0 children
+66663: creating a node (value 13979) for at least 1 children
+66663: creating a node (value 28170) for at least 0 children
+66663: creating a node (value 22283) for at least 1 children
+66663: creating a node (value 13054) for at least 1 children
+66663: creating a node (value 24918) for at least 0 children
+15118
+--5533
+----27925
+------17774
+------2043
+----1926
+------13439
+----30454
+------9945
+------15274
+--------15274
+----------24369
+--10037
+----20613
+------10168
+--------2789
+------24174
+--------7366
+----------5457
+----21690
+------30193
+----31823
+------23252
+--------22696
+------11660
+--6660
+----4220
+------21353
+--------14600
+----------16463
+------3376
+----205
+------27020
+----17618
+------11142
+--------29085
+------26340
+--------19803
+----------19765
+--26132
+----6768
+------24601
+------24072
+--------25207
+----------26604
+----31577
+------24773
+--------1592
+----------32458
+------30415
+----8711
+------17715
+--------11208
+--15815
+----17710
+------16586
+--------17056
+----------20206
+------22432
+--------2990
+----13979
+------28170
+----22283
+------13054
+--------24918
+header chk: 80c total 804f
+66663: Sending a DATA packet with header 8000 c 804f, sending 12 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (100)
+66663: received frame with header 100 8 108 size is correct - expected ack 0, advancing next seqno
+Node 0 val 15118 -> 1 12 25 39 53 
+Node 1 val 5533 -> 2 5 7 
+Node 2 val 27925 -> 3 4 
+Node 3 val 17774 -> 
+Node 4 val 2043 -> 
+Node 5 val 1926 -> 6 
+Node 6 val 13439 -> 
+Node 7 val 30454 -> 8 9 
+Node 8 val 9945 -> 
+Node 9 val 15274 -> 10 
+Node 10 val 15274 -> 11 
+Node 11 val 24369 -> 
+Node 12 val 10037 -> 13 19 21 
+Node 13 val 20613 -> 14 16 
+Node 14 val 10168 -> 15 
+Node 15 val 2789 -> 
+Node 16 val 24174 -> 17 
+Node 17 val 7366 -> 18 
+Node 18 val 5457 -> 
+Node 19 val 21690 -> 20 
+Node 20 val 30193 -> 
+Node 21 val 31823 -> 22 24 
+Node 22 val 23252 -> 23 
+Node 23 val 22696 -> 
+Node 24 val 11660 -> 
+Node 25 val 6660 -> 26 31 33 
+Node 26 val 4220 -> 27 30 
+Node 27 val 21353 -> 28 
+Node 28 val 14600 -> 29 
+Node 29 val 16463 -> 
+Node 30 val 3376 -> 
+Node 31 val 205 -> 32 
+Node 32 val 27020 -> 
+Node 33 val 17618 -> 34 36 
+Node 34 val 11142 -> 35 
+Node 35 val 29085 -> 
+Node 36 val 26340 -> 37 
+Node 37 val 19803 -> 38 
+Node 38 val 19765 -> 
+Node 39 val 26132 -> 40 45 50 
+Node 40 val 6768 -> 41 42 
+Node 41 val 24601 -> 
+Node 42 val 24072 -> 43 
+Node 43 val 25207 -> 44 
+Node 44 val 26604 -> 
+Node 45 val 31577 -> 46 49 
+Node 46 val 24773 -> 47 
+Node 47 val 1592 -> 48 
+Node 48 val 32458 -> 
+Node 49 val 30415 -> 
+Node 50 val 8711 -> 51 
+Node 51 val 17715 -> 52 
+Node 52 val 11208 -> 
+Node 53 val 15815 -> 54 60 62 
+Node 54 val 17710 -> 55 58 
+Node 55 val 16586 -> 56 
+Node 56 val 17056 -> 57 
+Node 57 val 20206 -> 
+Node 58 val 22432 -> 59 
+Node 59 val 2990 -> 
+Node 60 val 13979 -> 61 
+Node 61 val 28170 -> 
+Node 62 val 22283 -> 63 
+Node 63 val 13054 -> 64 
+Node 64 val 24918 -> 
+Sending 0 1 2 3 4 Copy had correct length
+header chk: 80f0 total 818e
+66663: Sending a DATA packet with header 8080 70 818e, sending 112 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (101)
+66663: received frame with header 101 8 109 size is correct - expected ack 1, advancing next seqno
+
+Sending 5 6 7 8 9 Copy had correct length
+header chk: 8058 total d87a
+66663: Sending a DATA packet with header 8000 58 d87a, sending 88 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (100)
+66663: received frame with header 100 8 108 size is correct - expected ack 0, advancing next seqno
+
+Sending 10 11 12 13 14 Copy had correct length
+header chk: 80e4 total b431
+66663: Sending a DATA packet with header 8080 64 b431, sending 100 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (101)
+66663: received frame with header 101 8 109 size is correct - expected ack 1, advancing next seqno
+
+Sending 15 16 17 18 19 Copy had correct length
+header chk: 8054 total 89a3
+66663: Sending a DATA packet with header 8000 54 89a3, sending 84 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (100)
+66663: received frame with header 100 8 108 size is correct - expected ack 0, advancing next seqno
+
+Sending 20 21 22 23 24 Copy had correct length
+header chk: 80d4 total a6d0
+66663: Sending a DATA packet with header 8080 54 a6d0, sending 84 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (101)
+66663: received frame with header 101 8 109 size is correct - expected ack 1, advancing next seqno
+
+Sending 25 26 27 28 29 Copy had correct length
+header chk: 8064 total a052
+66663: Sending a DATA packet with header 8000 64 a052, sending 100 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (100)
+66663: received frame with header 100 8 108 size is correct - expected ack 0, advancing next seqno
+
+Sending 30 31 32 33 34 Copy had correct length
+header chk: 80d8 total 8b8c
+66663: Sending a DATA packet with header 8080 58 8b8c, sending 88 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (101)
+66663: received frame with header 101 8 109 size is correct - expected ack 1, advancing next seqno
+
+Sending 35 36 37 38 39 Copy had correct length
+header chk: 805c total f11b
+66663: Sending a DATA packet with header 8000 5c f11b, sending 92 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (100)
+66663: received frame with header 100 8 108 size is correct - expected ack 0, advancing next seqno
+
+Sending 40 41 42 43 44 Copy had correct length
+header chk: 80d8 total a15c
+66663: Sending a DATA packet with header 8080 58 a15c, sending 88 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (101)
+66663: received frame with header 101 8 109 size is correct - expected ack 1, advancing next seqno
+
+Sending 45 46 47 48 49 Copy had correct length
+header chk: 8058 total 9582
+66663: Sending a DATA packet with header 8000 58 9582, sending 88 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (100)
+66663: received frame with header 100 8 108 size is correct - expected ack 0, advancing next seqno
+
+Sending 50 51 52 53 54 Copy had correct length
+header chk: 80e4 total b4a0
+66663: Sending a DATA packet with header 8080 64 b4a0, sending 100 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (101)
+66663: received frame with header 101 8 109 size is correct - expected ack 1, advancing next seqno
+
+Sending 55 56 57 58 59 Copy had correct length
+header chk: 8054 total 909a
+66663: Sending a DATA packet with header 8000 54 909a, sending 84 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (100)
+66663: received frame with header 100 8 108 size is correct - expected ack 0, advancing next seqno
+
+Sending last 60 61 62 63 64 Copy had correct length
+header chk: 80d4 total dca1
+66663: Sending a DATA packet with header 8080 54 dca1, sending 84 bytes
+66663: Sending a packet
+66663: Received 8 bytes from 127.0.0.1
+66663: testing if ACK (100) is set in flags (101)
+66663: received frame with header 101 8 109 size is correct - expected ack 1, advancing next seqno
+
+66663: Lookup server loop has ended
+
