@@ -84,3 +84,9 @@ header chk: 8092 total f5e7
 This the output for the server when client sends ID 1007. The number 66663 is the process number of this server; your will be different.
 
 [d2_server-output.txt](d2_server-output.txt)
+
+## I am running the server and client and d1_server works while d1_dump doesn't. How do I fix this?
+
+If you are absolutely sure your code has no issues and should be working (yet still doesnt work), try updating the servers and maybe all other files which you are not supposed to edit. There are a few who have had this issue.
+
+### WARNING: Make sure not to override your code! Keeping a backup of your work is a good practice.
