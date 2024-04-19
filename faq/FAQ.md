@@ -90,3 +90,8 @@ This the output for the server when client sends ID 1007. The number 66663 is th
 If you are absolutely sure your code has no issues and should be working (yet still doesnt work), try updating the servers and maybe all other files which you are not supposed to edit. There are a few who have had this issue.
 
 ### WARNING: Make sure not to override your code! Keeping a backup of your work is a good practice.
+
+## I get segmentation faults and I cannot figure out what the cause is.
+
+Use valgrind. This is a powerful tool that can help you figure most problems. 
+A simple '\*' or '&' in the wrong place can cause errors that are hard to detect. 
