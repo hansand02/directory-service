@@ -38,6 +38,7 @@ int main( int argc, char* argv[] )
     char*    server_name = argv[1];
     uint16_t server_port = atoi(argv[2] );
 
+    printf( "Connecting to ");
     /* Create a suitable data structure to manage the assocation of this client
      * with a server.
      */
@@ -48,6 +49,7 @@ int main( int argc, char* argv[] )
         return -1;
     }
 
+
     printf( "Created D1 client\n" );
 
     int  ret;
@@ -57,6 +59,7 @@ int main( int argc, char* argv[] )
      * If the discovery succeeds, store the information in the D1Peer structure
      * client.
      * Otherwise, terminate the client and quit.
+     * Server name can be a dotted decimal address, or localhost
      */
     ret = d1_get_peer_info( client, server_name, server_port );
     if( ret == 0 )
