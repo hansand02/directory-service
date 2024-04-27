@@ -14,7 +14,10 @@ libhe.a: d1_udp.o d2_lookup.o
 
 d1_test_client: d1_test_client.o libhe.a
 	gcc $(LDFLAGS) -o $@ $^
-	$(VALG) ./d1_test_client 127.0.0.1 3678
+
+thisone: d1_test_client.o libhe.a
+	gcc $(LDFLAGS) -o $@ $^
+	$(VALG) ./thisone localhost 3678
 
 d2_test_client: d2_test_client.o libhe.a
 	gcc $(LDFLAGS) -o $@ $^
