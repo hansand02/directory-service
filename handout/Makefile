@@ -1,12 +1,6 @@
 CFLAGS=-g -std=gnu11 -Wall -Wextra
 LDFLAGS=-g
 
-ifneq ("$(VALGRIND)", "")
-  VALG = valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --malloc-fill=0x40 --free-fill=0x23
-else
-  VALG =
-endif
-
 all: libhe.a d1_test_client d2_test_client
 
 libhe.a: d1_udp.o d2_lookup.o
@@ -15,12 +9,9 @@ libhe.a: d1_udp.o d2_lookup.o
 d1_test_client: d1_test_client.o libhe.a
 	gcc $(LDFLAGS) -o $@ $^
 
-thisone: d1_test_client.o libhe.a
-	gcc $(LDFLAGS) -o $@ $^
-	$(VALG) ./thisone localhost 3678
-
 d2_test_client: d2_test_client.o libhe.a
 	gcc $(LDFLAGS) -o $@ $^
+	./d2_test_client localhost 3678 2315
 
 d1_udp.o: d1_udp.c d1_udp.h d1_udp_mod.h
 
@@ -41,5 +32,3 @@ clean:
 	rm -f *.o
 	rm -f libhe.a
 	rm -rf *.gch
-
-

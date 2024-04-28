@@ -26,14 +26,14 @@ void check_error(int res, char *msg, int line, char* file) {
 };
 
 void print_error_line(int line, char* file, char* message) {
-    printf("\033[0;31m✘: Error: %s\033[0m\n", message );
+    printf("\033[0;31m✘: D1 Error: %s\033[0m\n", message );
     printf("\033[0;31m✘: on line: %d file: %s\033[0m\n", line, file);
 }
 
 void print_line(int line, const char *file, const char *message) {
     if(PRINT_DEBUG_INFO) {
-        printf("\033[0;36m --> Going through line: %d file: %s\033[0m\n", line, file);
-        printf("\033[0;36m --> Completing { %s } \033[0m\n\n", message);
+        printf("\033[0;36m \t--> Going through line: %d file: %s\033[0m\n", line, file);
+        printf("\033[0;36m \t--> Done D1 task { %s } \033[0m\n\n", message);
     }
 }
 
@@ -146,7 +146,6 @@ int d1_get_peer_info( struct D1Peer* peer, const char* peername, uint16_t server
     return 1;
 }
 
-
 /**
  * @brief Call this to wait for a single packet from the peer. The function checks if the
  *  size indicated in the header is correct and if the checksum is correct.
@@ -157,54 +156,38 @@ int d1_get_peer_info( struct D1Peer* peer, const char* peername, uint16_t server
  * @return The number of bytes received on success (can be 0), or -1 on failure.
  */
 int d1_recv_data(struct D1Peer* peer, char* buffer, size_t sz) {
-    
-    char* packet = (char*)calloc(1, sz);
-    D1Header* header = (D1Header*)malloc(sizeof(D1Header));
-    // TODO: should really use recvfrom, since it is UDP, and we have established a peer.
-    ssize_t bytes_received = recv(peer->socket, packet, sz, 0);
 
-    //Check the four items; packet, packet_copy and header for errors, and bytes_received!
-    if (bytes_received < 0 || !header || !packet) {
-        d1_delete(peer);
-        check_error(bytes_received, "d1_recv_data", __LINE__, __FILE__);
+    char packet[sizeof(D1Header) + sz];
+
+    // Using recvfrom, since we are using Udp, so source adress is more critical.
+    socklen_t fromlen = sizeof(peer->addr);
+    ssize_t bytes_received = recvfrom(peer->socket, packet, sz + sizeof(D1Header), 0, (struct sockaddr*)&(peer->addr), &fromlen);
+    if (bytes_received < 0 || bytes_received > sz + sizeof(D1Header)) {
+        check_error(bytes_received, "error with bytes received(d1_recv_data)", __LINE__, __FILE__);
         return -1;
     } 
 
-    char* packet_copy = (char*)calloc(1, bytes_received);
-    if(!packet_copy) {
-        d1_delete(peer);
-        check_error(-1, "malloc packet_copy", __LINE__, __FILE__);
-        return -1;
-    }
-
-    memcpy(&header->flags, packet, sizeof(header->flags));
-    memcpy(&header->checksum, packet + sizeof(header->flags), sizeof(header->checksum));
-    memcpy(&header->size, packet + sizeof(header->flags) + sizeof(header->checksum), sizeof(header->size));
+    D1Header* header = (D1Header*)packet;
     header->flags = ntohs(header->flags);
     header->checksum = ntohs(header->checksum);
     header->size = ntohl(header->size);
+    
+    memcpy(buffer, packet + sizeof(D1Header), bytes_received - sizeof(D1Header));
 
-    //Get the corresponding values of the fields listed in the header, for comparison
-    uint16_t checksum = calculate_checksum(packet_copy, bytes_received); // Calculate the checksum, does not calculate over the checksum field
-    uint32_t size = bytes_received;
+    // Calculate the checksum, does not calculate over the checksum field
+    uint16_t checksum = calculate_checksum(header, bytes_received);
     
     // check if checksum and size is correct with actual values.
     // send ack with correct seqno if correct, else send ack with wrong seqno, this should trigger server to retransmit
-    if (checksum == header->checksum && size == header->size) {
+    if (checksum == header->checksum && bytes_received == header->size) {
         d1_send_ack(peer, peer->next_seqno);
     } else {
         d1_send_ack(peer, !peer->next_seqno);
     }
-    memcpy(buffer, packet + sizeof(D1Header), bytes_received - sizeof(D1Header));
-    
-    free(packet);
-    free(header);
-    free(packet_copy);
 
     print_line(__LINE__, __FILE__, "Received data (d1_recv_data)");
     return bytes_received - sizeof(D1Header);
 }
-
 
 /**
  * @brief Waits for an acknowledgment pack from a D1Peer.
@@ -224,11 +207,13 @@ int d1_wait_ack(D1Peer* peer, char* buffer, size_t sz) {
     int pack_received = -1; // -1 means not received
     //Looks quirky, but it just sets the timeout to 1 second. 
     setsockopt(peer->socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&(struct timeval){1, 0}, sizeof(struct timeval));
-    
+    // Helper variable for recvfrom
+    socklen_t fromlen = sizeof(peer->addr);
+
 
     while (pack_received == -1) {
         char received_packet[sz];
-        ssize_t bytes_received = recvfrom(peer->socket, received_packet, sz, 0, NULL, NULL);
+        ssize_t bytes_received = recvfrom(peer->socket, received_packet, sz + sizeof(D1Header), 0, (struct sockaddr*)&(peer->addr), &fromlen);
         if(bytes_received == -1) {
             reset_socket_options(peer);
             check_error(bytes_received, "timeout, ack not received", __LINE__, __FILE__);
