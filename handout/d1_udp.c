@@ -17,13 +17,8 @@
 
 #define PACKET_MAX 1024
 #define PRINT_DEBUG_INFO 1
-/* static int isConnected = 0;
- */
 
-/* 
-    Self defined function to check for errors
-    Based on system calls returning -1 on errors
- */
+
 void check_error(int res, char *msg, int line, char* file) {
     if(res == -1) {
         print_error_line(line, file, msg);
@@ -76,6 +71,10 @@ uint16_t calculate_checksum(char* newBuffer, int size) {
     return checksum;
 }
 
+void reset_socket_options(D1Peer* peer) {
+    // Reset the socket options to standard values
+    setsockopt(peer->socket, SOL_SOCKET, SO_RCVTIMEO, NULL, 0);
+}
 
 /** 
  * 
@@ -102,6 +101,7 @@ D1Peer* d1_create_client() {
     }
     peer->socket = sockfd;
 
+    print_line(__LINE__, __FILE__, "Created client (d1_create_client)");
     return peer;
 }
 
@@ -142,9 +142,9 @@ int d1_get_peer_info( struct D1Peer* peer, const char* peername, uint16_t server
         memcpy(&dest_addr.sin_addr, host->h_addr_list[0], host->h_length);
     }
     peer->addr = dest_addr;
+    print_line(__LINE__, __FILE__, "Got peer info (d1_get_peer_info)");
     return 1;
 }
-
 
 
 /**
@@ -201,6 +201,7 @@ int d1_recv_data(struct D1Peer* peer, char* buffer, size_t sz) {
     free(header);
     free(packet_copy);
 
+    print_line(__LINE__, __FILE__, "Received data (d1_recv_data)");
     return bytes_received - sizeof(D1Header);
 }
 
@@ -215,7 +216,7 @@ int d1_recv_data(struct D1Peer* peer, char* buffer, size_t sz) {
  * @param peer The D1Peer to wait for acknowledgment from.
  * @param buffer The buffer to store the received acknowledgment.
  * @param sz The size of the buffer.
- * @return Returns 1 if the ack was received and successful, -1 if there is an error, 0 on timeout
+ * @return Returns 1 if the ack was received and successful, -1 if there is an error or timeout
  */
 int d1_wait_ack(D1Peer* peer, char* buffer, size_t sz) {
 
@@ -228,18 +229,17 @@ int d1_wait_ack(D1Peer* peer, char* buffer, size_t sz) {
     while (pack_received == -1) {
         char received_packet[sz];
         ssize_t bytes_received = recvfrom(peer->socket, received_packet, sz, 0, NULL, NULL);
-        check_error(bytes_received, "timeout, ack not received", __LINE__, __FILE__);
-        
+        if(bytes_received == -1) {
+            reset_socket_options(peer);
+            check_error(bytes_received, "timeout, ack not received", __LINE__, __FILE__);
+            return -1;
+        }
+
         if (bytes_received > 0 ) {
             pack_received = 1;
             // ACK received if 8th bit equal to 1 
             int received_ackno = ((ntohs(received_packet[0]) & (1<<8)) >> 8); 
             int received_seqno = ((ntohs(received_packet[1]) & (1<<8)) >> 8); 
-            
-            printf("Received ackno: 0x%02X\n", received_ackno);
-            printf("Received seqkno: 0x%02X\n", received_seqno);
-            
-            printf("Real seqno: %u\n", real_seqno);
 
             if (received_seqno != real_seqno ) {
                 // If the received ack is not the same as the one we sent, resend the packet, done at a higher level
@@ -249,22 +249,25 @@ int d1_wait_ack(D1Peer* peer, char* buffer, size_t sz) {
             } else {
                 peer->next_seqno = !peer->next_seqno;
                 reset_socket_options(peer);
+                print_line(__LINE__, __FILE__, "Received ack (d1_wait_ack)");
                 return 1; // Return a positive value in case of success
             }
         }
     }
-    reset_socket_options(peer);
-    return 0;
 }
 
-
-void reset_socket_options(D1Peer* peer) {
-    // Reset the socket options to standard values
-    setsockopt(peer->socket, SOL_SOCKET, SO_RCVTIMEO, NULL, 0);
-}
+/**
+ * @brief If the buffer does not exceed the packet size, the function adds the D1 header and sends
+ *  it to the peer.
+ *
+ * @param peer    The D1Peer to send the data to.
+ * @param buffer  The buffer containing the data to send.
+ * @param sz      The size of the data to send.
+ * @return        Returns bytes sent on success, or a negative value on failure.
+ */
 
 int d1_send_data(D1Peer* peer, char* buffer, size_t sz) {
-  
+    int wc = 0;
     // TODO: Check if the buffer size exceeds the packet size
     int size = sz + sizeof(D1Header);
     if (size > PACKET_MAX) {
@@ -272,26 +275,22 @@ int d1_send_data(D1Peer* peer, char* buffer, size_t sz) {
         check_error(-1, "Data and header size exceeds 1024 bytes", __LINE__, __FILE__);
         return -1;
     }
-    
-    int wc = 0;
 
     // Create the D1 header
     D1Header* header = (D1Header*)malloc(sizeof(D1Header));
-
-
-    print_line(__LINE__, __FILE__, "Creating D1 header");
+    if(header == NULL) {
+        check_error(-1, "Malloc header d1_send_data", __LINE__, __FILE__);
+        return -1;
+    }
     
     // Keep it simple, could use bitwise and with peer->next_seqno, but this is way readable. 
     if(peer->next_seqno) {
-        header->flags = htons(FLAG_DATA |  SEQNO); // Set the data packet flag and seqno
+        header->flags = htons(FLAG_DATA |  SEQNO); // Set the data packet flag and seqno if it is one
     } else {
         header->flags = htons(FLAG_DATA); // Set the data packet flag
     }
     
-    printf("Flags (hex): 0x%04X\n", ntohs(header->flags));
-    printf("This is the next seqno: %d\n", peer->next_seqno);
-    header->size = htonl(size);       // Set the length of the data
-    header->checksum = 0 ;    // Set the checksum to 0, since we are not implementing it
+    header->size = htonl(size);       // Set the length of the data in network long byte order
     char newBuffer[size];
 
     // Place the header in the "packet", step by step
@@ -299,32 +298,37 @@ int d1_send_data(D1Peer* peer, char* buffer, size_t sz) {
     memcpy(newBuffer, &(header->flags), 2);
     memcpy(newBuffer + 2, &(header->checksum), 2);
     memcpy(newBuffer + 4, &(header->size), 4);
+
     // Place the data in the packet, at place sizeof(header), which means right after the header
     memcpy(newBuffer + sizeof(header), buffer, sz);
-    check_error(wc, "memcpy udp header :in: d1_send_data", __LINE__, __FILE__);
     
+    // Set the checksum
     header->checksum= htons(calculate_checksum(newBuffer, size));
     memcpy(newBuffer + 2, &(header->checksum), 2);
-    check_error(wc, "memcpy udp checksum :in: d1_send_data", __LINE__, __FILE__);
 
-    wc = sendto(peer->socket, newBuffer, size, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
+    // SEND THE PACKET
+    int bytes_sent = sendto(peer->socket, newBuffer, size, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
     check_error(wc, "sendto", __LINE__, __FILE__);    
 
+    // Wait for the ack, this goes on forever if there is no ack arriving, but this is what the handout says. 
     wc = d1_wait_ack(peer, buffer, sz);
-
-    check_error(wc, "d1_wait_ack", __LINE__, __FILE__);
-
     if(wc == -1) {
-        d1_send_data(peer, buffer, sz);
-    } else if (wc == 0)
-    {
-        printf("Timeout, server disconnected\n");
+        check_error(wc, "d1_wait_ack", __LINE__, __FILE__);
+        free(header);
+        return d1_send_data(peer, buffer, sz);
     }
-
+    
+    print_line(__LINE__, __FILE__, "Sent data (d1_send_data)");
     free(header);
-    return wc;
+    return bytes_sent;
 }
 
+/**
+ * Sends an acknowledgment to a peer with the specified sequence number.
+ *
+ * @param peer The pointer to the D1Peer structure representing the peer.
+ * @param seqno The sequence number to be included in the acknowledgment (0 or 1).
+ */
 void d1_send_ack( struct D1Peer* peer, int seqno )
 {
     
@@ -333,41 +337,38 @@ void d1_send_ack( struct D1Peer* peer, int seqno )
 
     // Create the D1 header
     D1Header* header = (D1Header*)malloc(sizeof(D1Header));
+    if(header == NULL) {
+        check_error(-1, "Malloc header d1_send_ack", __LINE__, __FILE__);
+        return -1;
+    }
 
-        // Keep it simple, could use bitwise and with peer->next_seqno, but this is way readable. 
-    if(peer->next_seqno) {
+    // Keep it simple, could use bitwise and with peer->next_seqno, but this is way readable. 
+    // Since the only value seqno can have is 0 or 1, this works:). Dont know why i had to reverse seqno, but it works. 
+    if(!seqno) {
         header->flags = htons(FLAG_ACK |  ACKNO); // Set the data packet flag and seqno
     } else {
         header->flags = htons(FLAG_ACK); // Set the data packet flag
     }
 
     header->size = htonl(size);       // Set the length of the data
-    header->checksum = 0 ;    // Set the checksum to 0, since we are not implementing it
     char newBuffer[size];
 
-    printf("Flags (binary): ");
-    for (int i = 0; i <= 15; i++) {
-        printf("%d", (ntohs(header->flags) >> i) & 1);
-    }
-    printf("\n");
-
-    // Place the header in the "packet", step by step
+    // Place the header in the packet, step by step
     // Else, only the flags will be put in memory, as header is a pointer and only will add flags
-    wc = memcpy(newBuffer, &(header->flags), 2);
-    wc = memcpy(newBuffer + 2, &(header->checksum), 2);
-    wc = memcpy(newBuffer + 4, &(header->size), 4);
+    memcpy(newBuffer, &(header->flags), 2);
+    memcpy(newBuffer + 2, &(header->checksum), 2);
+    memcpy(newBuffer + 4, &(header->size), 4);
     // Place the data in the packet, at place sizeof(header), which means right after the header
-    check_error(wc, "memcpy udp header :in: d1_send_data", __LINE__, __FILE__);
-    
     header->checksum= htons(calculate_checksum(newBuffer, size));
-    wc = memcpy(newBuffer + 2, &(header->checksum), 2);
-    check_error(wc, "memcpy udp checksum :in: d1_send_data", __LINE__, __FILE__);
+    memcpy(newBuffer + 2, &(header->checksum), 2);
 
     wc = sendto(peer->socket, newBuffer, size, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
-    check_error(wc, "sendto", __LINE__, __FILE__); 
-
+    if(wc == -1) {
+        check_error(wc, "sending ack d1_send_ack", __LINE__, __FILE__);
+        free(header); // No stated reason to recursively call send_ack. 
+    }
     free(header);
-    return wc;
-
+    print_line(__LINE__, __FILE__, "Sent ack (d1_send_ack)");
+    return;
 }
 
