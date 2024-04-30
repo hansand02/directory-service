@@ -86,7 +86,6 @@ int main( int argc, char* argv[] )
          */
         int ret = d2_recv_response( client, buffer, 1024 );
         printf( "%d: D2 received a response packet\n", getpid() );
-
         if( ret > (int)sizeof(PacketResponse) )
         {
             /* Check whether this is a PacketResponse of type

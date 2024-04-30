@@ -158,34 +158,41 @@ int d1_get_peer_info( struct D1Peer* peer, const char* peername, uint16_t server
 int d1_recv_data(struct D1Peer* peer, char* buffer, size_t sz) {
 
     char packet[sizeof(D1Header) + sz];
-
+    int notCompleted = 1;
+    ssize_t bytes_received = 0;
+    D1Header* header;
+    
     // Using recvfrom, since we are using Udp, so source adress is more critical.
     socklen_t fromlen = sizeof(peer->addr);
-    ssize_t bytes_received = recvfrom(peer->socket, packet, sz + sizeof(D1Header), 0, (struct sockaddr*)&(peer->addr), &fromlen);
+    bytes_received = recvfrom(peer->socket, packet, sz + sizeof(D1Header), 0, (struct sockaddr*)&(peer->addr), &fromlen); 
+    /* bytes_received = recv(peer->socket, packet, sz + sizeof(D1Header), 0); */
     if (bytes_received < 0 || bytes_received > sz + sizeof(D1Header)) {
         check_error(bytes_received, "error with bytes received(d1_recv_data)", __LINE__, __FILE__);
         return -1;
     } 
 
-    D1Header* header = (D1Header*)packet;
+    header = (D1Header*)packet;
     header->flags = ntohs(header->flags);
     header->checksum = ntohs(header->checksum);
     header->size = ntohl(header->size);
     
-    memcpy(buffer, packet + sizeof(D1Header), bytes_received - sizeof(D1Header));
+    
 
     // Calculate the checksum, does not calculate over the checksum field
     uint16_t checksum = calculate_checksum(header, bytes_received);
     
     // check if checksum and size is correct with actual values.
     // send ack with correct seqno if correct, else send ack with wrong seqno, this should trigger server to retransmit
-    if (checksum == header->checksum && bytes_received == header->size) {
-        d1_send_ack(peer, peer->next_seqno);
-    } else {
-        d1_send_ack(peer, !peer->next_seqno);
+    if ((checksum != header->checksum) | (bytes_received != header->size)) {
+        d1_send_ack(peer, !(header->flags & SEQNO));
+    } else if (header->flags & FLAG_DATA) {
+        d1_send_ack(peer, header->flags & SEQNO);
     }
-
+  
+    memcpy(buffer, packet + sizeof(D1Header), sz);
+   
     print_line(__LINE__, __FILE__, "Received data (d1_recv_data)");
+    
     return bytes_received - sizeof(D1Header);
 }
 
@@ -354,6 +361,5 @@ void d1_send_ack( struct D1Peer* peer, int seqno )
     }
     free(header);
     print_line(__LINE__, __FILE__, "Sent ack (d1_send_ack)");
-    return;
 }
 

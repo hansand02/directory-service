@@ -78,8 +78,8 @@ int d2_send_request( D2Client* client, uint32_t id ) {
         return -1;
     }
 
-    pack->type = htons(TYPE_REQUEST);
     pack->id = htonl(id);
+    pack->type = htons(TYPE_REQUEST);
 
     int wc = d1_send_data(client->peer, pack, sizeof(PacketRequest));
     if( wc <= 0 ) {
@@ -91,16 +91,18 @@ int d2_send_request( D2Client* client, uint32_t id ) {
     return wc;
 }
 
-int d2_recv_response_size( D2Client* client ) {
+int d2_recv_response_size( D2Client* client )
+{
     char buffer[sizeof(PacketResponseSize)];
     int wc = d1_recv_data(client->peer, buffer, sizeof(PacketResponseSize));
-    
+    printf("wc: %d\n", wc);
+
     if( wc <= 0 ) {
-        check_error_d2(-1, "Failed to receive data", __LINE__, __FILE__);
+        check_error_d2(-1, "Failed to receive size data", __LINE__, __FILE__);
         return -1;
     }
 
-    // This is just to check that it has the correct type, would not cause any issues without it( i think ), but clean
+    // This is just to check that it has the correct type, would not cause any issues without it, but clean
     PacketHeader* packCheck = (PacketHeader*)buffer;
     if( ntohs(packCheck->type) != TYPE_RESPONSE_SIZE ) {
         check_error_d2(-1, "Received wrong packet type", __LINE__, __FILE__);
@@ -116,19 +118,20 @@ int d2_recv_response_size( D2Client* client ) {
 
 int d2_recv_response( D2Client* client, char* buffer, size_t sz )
 {
-    // Since the test file sets sz to 1024, and d1_recv_data can be sz + D1Header large, we need to subtract D1Header from the size. Or else the packet could be 1032 bytes.
-    int wc = d1_recv_data(client->peer, buffer, sz-sizeof(D1Header));
+    // Subtract the size of D1Header from the total size to account for the packet header.
+    int wc = d1_recv_data(client->peer, buffer, sz - sizeof(D1Header));
     if( wc <= 0 ) {
         check_error_d2(-1, "Failed to receive data", __LINE__, __FILE__);
         return -1;
     }
 
-    // This is just to check that it has the correct type, would not cause any issues without it( i think ), but clean
+    // Check the packet type to ensure it is correct.
     PacketResponse* packCheck = (PacketResponse*)buffer;
+    printf("Packet type: %d\n", ntohs(packCheck->type));
+    printf("Type response: %d\n", TYPE_RESPONSE);
 
- 
-    sleep(1);
-    if( ntohs(packCheck->type) != TYPE_RESPONSE || ntohs(packCheck->type) != TYPE_LAST_RESPONSE ){
+
+    if( ntohs(packCheck->type) != TYPE_RESPONSE && ntohs(packCheck->type) != TYPE_LAST_RESPONSE ){
         check_error_d2(-1, "Received wrong packet type", __LINE__, __FILE__);
         return -1;
     }
