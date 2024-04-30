@@ -78,8 +78,8 @@ int d2_send_request( D2Client* client, uint32_t id ) {
         return -1;
     }
 
-    pack->id = htonl(id);
     pack->type = htons(TYPE_REQUEST);
+    pack->id = htonl(id);
 
     int wc = d1_send_data(client->peer, pack, sizeof(PacketRequest));
     if( wc <= 0 ) {
@@ -91,8 +91,7 @@ int d2_send_request( D2Client* client, uint32_t id ) {
     return wc;
 }
 
-int d2_recv_response_size( D2Client* client )
-{
+int d2_recv_response_size( D2Client* client ) {
     char buffer[sizeof(PacketResponseSize)];
     int wc = d1_recv_data(client->peer, buffer, sizeof(PacketResponseSize));
     
@@ -101,7 +100,7 @@ int d2_recv_response_size( D2Client* client )
         return -1;
     }
 
-    // This is just to check that it has the correct type, would not cause any issues without it, but clean
+    // This is just to check that it has the correct type, would not cause any issues without it( i think ), but clean
     PacketHeader* packCheck = (PacketHeader*)buffer;
     if( ntohs(packCheck->type) != TYPE_RESPONSE_SIZE ) {
         check_error_d2(-1, "Received wrong packet type", __LINE__, __FILE__);
@@ -117,8 +116,25 @@ int d2_recv_response_size( D2Client* client )
 
 int d2_recv_response( D2Client* client, char* buffer, size_t sz )
 {
-    /* implement this */
-    return 0;
+    // Since the test file sets sz to 1024, and d1_recv_data can be sz + D1Header large, we need to subtract D1Header from the size. Or else the packet could be 1032 bytes.
+    int wc = d1_recv_data(client->peer, buffer, sz-sizeof(D1Header));
+    if( wc <= 0 ) {
+        check_error_d2(-1, "Failed to receive data", __LINE__, __FILE__);
+        return -1;
+    }
+
+    // This is just to check that it has the correct type, would not cause any issues without it( i think ), but clean
+    PacketResponse* packCheck = (PacketResponse*)buffer;
+
+ 
+    sleep(1);
+    if( ntohs(packCheck->type) != TYPE_RESPONSE || ntohs(packCheck->type) != TYPE_LAST_RESPONSE ){
+        check_error_d2(-1, "Received wrong packet type", __LINE__, __FILE__);
+        return -1;
+    }
+
+    print_line_d2(__LINE__, __FILE__, "Received response from server (d2_recv_response)");
+    return wc;
 }
 
 LocalTreeStore* d2_alloc_local_tree( int num_nodes )
