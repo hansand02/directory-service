@@ -16,7 +16,7 @@
 
 
 #define PACKET_MAX 1024
-#define PRINT_DEBUG_INFO 1
+#define PRINT_DEBUG_INFO 0
 
 
 void check_error(int res, char *msg, int line, char* file) {
@@ -33,7 +33,7 @@ void print_error_line(int line, char* file, char* message) {
 void print_line(int line, const char *file, const char *message) {
     if(PRINT_DEBUG_INFO) {
         printf("\033[0;36m \t--> Going through line: %d file: %s\033[0m\n", line, file);
-        printf("\033[0;36m \t--> Done D1 task { %s } \033[0m\n\n", message);
+        printf("\033[0;36m \t--> Done D1 task { \033[1;39m%s\033[1;39m  } \033[0m\n\n", message);
     }
 }
 
