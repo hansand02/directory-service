@@ -8,11 +8,9 @@ libhe.a: d1_udp.o d2_lookup.o
 
 d1_test_client: d1_test_client.o libhe.a
 	gcc $(LDFLAGS) -o $@ $^
-	./d1_test_client localhost 3678
 
 d2_test_client: d2_test_client.o libhe.a
 	gcc $(LDFLAGS) -o $@ $^
-	./d2_test_client localhost 3678 2315
 
 d1_udp.o: d1_udp.c d1_udp.h d1_udp_mod.h
 
