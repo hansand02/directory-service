@@ -76,21 +76,25 @@ int d2_send_request( D2Client* client, uint32_t id ) {
         return -1;
     }
 
-    PacketRequest* pack = (PacketRequest*)malloc(sizeof(PacketRequest));
+    // Use calloc to initialise value.
+    PacketRequest* pack = (PacketRequest*)calloc(1, sizeof(PacketRequest));
     if( !pack ) {
         check_error_d2(-1, "Failed to allocate memory for PacketRequest", __LINE__, __FILE__);
         return -1;
     }
+
 
     pack->id = htonl(id);
     pack->type = htons(TYPE_REQUEST);
 
     int wc = d1_send_data(client->peer, pack, sizeof(PacketRequest));
     if( wc <= 0 ) {
+        free(pack);
         check_error_d2(-1, "Failed to send data", __LINE__, __FILE__);
         return -1;
     }
 
+    free(pack);
     print_line_d2(__LINE__, __FILE__, "Sent request to server");
     return wc;
 }
