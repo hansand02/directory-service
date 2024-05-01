@@ -85,7 +85,6 @@ void reset_socket_options(D1Peer* peer) {
  *  in case of failure.
  */
 D1Peer* d1_create_client() {
-    int wc = 0;
 
     //Calloc memory for the struct, using this to avoid "== Uninitialised value was created by a heap allocation"
     D1Peer* peer = (D1Peer*)calloc(1, sizeof(D1Peer));
@@ -159,7 +158,6 @@ int d1_get_peer_info( struct D1Peer* peer, const char* peername, uint16_t server
 int d1_recv_data(struct D1Peer* peer, char* buffer, size_t sz) {
 
     char packet[sizeof(D1Header) + sz];
-    int notCompleted = 1;
     ssize_t bytes_received = 0;
     D1Header* header;
     
@@ -167,27 +165,29 @@ int d1_recv_data(struct D1Peer* peer, char* buffer, size_t sz) {
     socklen_t fromlen = sizeof(peer->addr);
     bytes_received = recvfrom(peer->socket, packet, sz + sizeof(D1Header), 0, (struct sockaddr*)&(peer->addr), &fromlen); 
     /* bytes_received = recv(peer->socket, packet, sz + sizeof(D1Header), 0); */
-    if (bytes_received < 0 || bytes_received > sz + sizeof(D1Header)) {
+    if (bytes_received < 0 || bytes_received > (ssize_t)(sz + sizeof(D1Header))) {
         check_error(bytes_received, "error with bytes received(d1_recv_data)", __LINE__, __FILE__);
         return -1;
     } 
+
+    // Calculate the checksum, does not calculate over the checksum field
+    // VERY VERY IMPORTANT, before the ntoh(s/l) operations. 
+    uint16_t checksum = calculate_checksum(packet, bytes_received);
 
     header = (D1Header*)packet;
     header->flags = ntohs(header->flags);
     header->checksum = ntohs(header->checksum);
     header->size = ntohl(header->size);
-    
+
     
 
-    // Calculate the checksum, does not calculate over the checksum field
-    uint16_t checksum = calculate_checksum(header, bytes_received);
     
     // check if checksum and size is correct with actual values.
     // send ack with correct seqno if correct, else send ack with wrong seqno, this should trigger server to retransmit
     if ((checksum != header->checksum) | (bytes_received != header->size)) {
-        d1_send_ack(peer, !(header->flags & SEQNO));
-    } else if (header->flags & FLAG_DATA) {
         d1_send_ack(peer, header->flags & SEQNO);
+    } else if (header->flags & FLAG_DATA) {
+        d1_send_ack(peer, !(header->flags & SEQNO));
     }
   
     memcpy(buffer, packet + sizeof(D1Header), sz);
@@ -202,7 +202,7 @@ int d1_recv_data(struct D1Peer* peer, char* buffer, size_t sz) {
  * 
  * Function must always block after sending a data packet or connect packet until it has received the
  * correct ACK. If it receives the wrong ACK or does not receive an ACK within 1 second, it
- * must return -1 to resend its parents data packet or connect packet
+ * must return -1
  *
  * @param peer The D1Peer to wait for acknowledgment from.
  * @param buffer The buffer to store the received acknowledgment.
@@ -231,14 +231,17 @@ int d1_wait_ack(D1Peer* peer, char* buffer, size_t sz) {
         if (bytes_received > 0 ) {
             pack_received = 1;
             // ACK received if 8th bit equal to 1 
-            int received_ackno = ((ntohs(received_packet[0]) & (1<<8)) >> 8); 
             int received_seqno = ((ntohs(received_packet[1]) & (1<<8)) >> 8); 
 
-            if (received_seqno != real_seqno ) {
-                // If the received ack is not the same as the one we sent, resend the packet, done at a higher level
+            if (received_seqno != real_seqno) {
+                // If the received ack is not the same as the one we sent, resend the packet. The answer will be read at the first recvfrom in this functiona agin. 
+                int wc = sendto(peer->socket, buffer, sz, 0, (struct sockaddr *)&peer->addr, sizeof(struct sockaddr_in));
                 check_error(-1, "Received ack is not the same as the one we sent", __LINE__, __FILE__);
-                reset_socket_options(peer);
-                return -1;
+                pack_received = -1;
+
+                if(wc == -1) {
+                    return -1;
+                }
             } else {
                 peer->next_seqno = !peer->next_seqno;
                 reset_socket_options(peer);
@@ -247,6 +250,7 @@ int d1_wait_ack(D1Peer* peer, char* buffer, size_t sz) {
             }
         }
     }
+    return -1;
 }
 
 /**
@@ -308,7 +312,7 @@ int d1_send_data(D1Peer* peer, char* buffer, size_t sz) {
     if(wc == -1) {
         check_error(wc, "d1_wait_ack", __LINE__, __FILE__);
         free(header);
-        return d1_send_data(peer, buffer, sz);
+        return -1;
     }
     
     print_line(__LINE__, __FILE__, "Sent data (d1_send_data)");
@@ -332,7 +336,7 @@ void d1_send_ack( struct D1Peer* peer, int seqno )
     D1Header* header = (D1Header*)malloc(sizeof(D1Header));
     if(header == NULL) {
         check_error(-1, "Malloc header d1_send_ack", __LINE__, __FILE__);
-        return -1;
+        return;
     }
 
     // Keep it simple, could use bitwise and with peer->next_seqno, but this is way readable. 

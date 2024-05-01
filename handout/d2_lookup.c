@@ -89,11 +89,12 @@ int d2_send_request( D2Client* client, uint32_t id ) {
     pack->id = htonl(id);
     pack->type = htons(TYPE_REQUEST);
 
-    int wc = d1_send_data(client->peer, pack, sizeof(PacketRequest));
+    int wc = d1_send_data(client->peer, (char*)pack, sizeof(PacketRequest));
     if( wc <= 0 ) {
         free(pack);
+        d2_client_delete(client);
         check_error_d2(-1, "Failed to send data", __LINE__, __FILE__);
-        return -1;
+        return 0;
     }
 
     free(pack);
@@ -187,7 +188,7 @@ int d2_add_to_local_tree(LocalTreeStore* nodes_out, int node_idx, char* buffer, 
     }
 
     // Removing exactly 5 times 4 bytes, because "unused children fields are not sent over thenetwork"
-    size_t net_node_base_size = sizeof(NetNode) - sizeof(uint32_t) * 5;
+    int net_node_base_size = sizeof(NetNode) - sizeof(uint32_t) * 5;
 
     
     while (buflen >= net_node_base_size) {
@@ -202,7 +203,7 @@ int d2_add_to_local_tree(LocalTreeStore* nodes_out, int node_idx, char* buffer, 
         buffer += net_node_base_size;
         buflen -= net_node_base_size;
 
-        if (buflen < sizeof(uint32_t) * node.num_children) {
+        if (buflen < (int)(sizeof(uint32_t) * node.num_children)) {
             fprintf(stderr, "Not enough data for children IDs.\n");
             return -1;
         }
@@ -234,7 +235,7 @@ void display_node(LocalTreeStore *store, int index, int level) {
     printf("id: %d, value: %d, children: %d\n", current->id, current->value, current->num_children);
 
     // Gotta love recursion, do the same for children
-    for (int i = 0; i < current->num_children; i++) {
+    for (uint32_t i = 0; i < current->num_children; i++) {
         display_node(store, current->child_id[i], level + 1);
     }
 }
