@@ -12,11 +12,6 @@
 
 #define PRINT_DEBUG_INFO 0
 
-void check_error_d2(int res, char *msg, int line, char* file) {
-    if(res == -1) {
-        print_error_line_d2(line, file, msg);
-    }
-};
 
 void print_error_line_d2(int line, char* file, char* message) {
     printf("\033[0;31m✘: D2 Error: %s\033[0m\n", message );
@@ -29,6 +24,13 @@ void print_line_d2(int line, const char *file, const char *message) {
         printf("\033[1;36m --> Done D2 task { \033[1;39m%s\033[1;39m } \033[0m\n\n", message);
     }
 }
+
+void check_error_d2(int res, char *msg, int line, char* file) {
+    if(res == -1) {
+        print_error_line_d2(line, file, msg);
+    }
+};
+
 
 
 D2Client* d2_client_create( const char* server_name, uint16_t server_port )
@@ -144,25 +146,103 @@ int d2_recv_response( D2Client* client, char* buffer, size_t sz )
     return wc;
 }
 
-LocalTreeStore* d2_alloc_local_tree( int num_nodes )
-{
-    /* implement this */
-    return NULL;
+LocalTreeStore* d2_alloc_local_tree( int num_nodes ) {
+
+    // Again using calloc to initialize value at adress -> avoid warnings. 
+    LocalTreeStore* nodes = (LocalTreeStore*)calloc(1, sizeof(LocalTreeStore));
+    if( !nodes ) {
+        check_error_d2(-1, "Failed to allocate memory for LocalTreeStore", __LINE__, __FILE__);
+        return NULL;
+    }
+
+    nodes->number_of_nodes = num_nodes;
+    nodes->root = calloc(num_nodes, sizeof(NetNode));
+
+    if( !nodes->root ) {
+        free(nodes);
+        check_error_d2(-1, "Failed to allocate memory for NetNode", __LINE__, __FILE__);
+        return NULL;
+    }
+
+    return nodes;
 }
 
 void  d2_free_local_tree( LocalTreeStore* nodes )
 {
-    /* implement this */
+    if( nodes ) {
+        if(nodes->root) {
+            free(nodes->root);
+        }
+        free(nodes);
+        print_line_d2(__LINE__, __FILE__, "Freed local tree");
+    }
 }
 
-int d2_add_to_local_tree( LocalTreeStore* nodes_out, int node_idx, char* buffer, int buflen )
-{
-    /* implement this */
-    return 0;
+int d2_add_to_local_tree(LocalTreeStore* nodes_out, int node_idx, char* buffer, int buflen) {
+
+    // Well well, this is a bit tricky, but eveything is checked i guess..
+    if ( !nodes_out || !buffer || node_idx < 0 || node_idx >= nodes_out->number_of_nodes || buflen < 0) {
+        fprintf(stderr, "Invalid input parameters.\n");
+        return -1;
+    }
+
+    // Removing exactly 5 times 4 bytes, because "unused children fields are not sent over thenetwork"
+    size_t net_node_base_size = sizeof(NetNode) - sizeof(uint32_t) * 5;
+
+    
+    while (buflen >= net_node_base_size) {
+
+        NetNode node;
+        memcpy(&node, buffer, net_node_base_size); 
+
+        node.id = ntohl(node.id);
+        node.value = ntohl(node.value);
+        node.num_children = ntohl(node.num_children);
+
+        buffer += net_node_base_size;
+        buflen -= net_node_base_size;
+
+        if (buflen < sizeof(uint32_t) * node.num_children) {
+            fprintf(stderr, "Not enough data for children IDs.\n");
+            return -1;
+        }
+
+        //this handles the children, after the "header" of NetNode is set above. 
+        for (uint32_t i = 0; i < node.num_children; ++i) {
+            memcpy(&node.child_id[i], buffer, sizeof(uint32_t));
+            node.child_id[i] = ntohl(node.child_id[i]);
+
+            // unit32_t is the size of children id given in slides, so for each slize ad 8 bytes to buffer adress.
+            buffer += sizeof(uint32_t);
+            buflen -= sizeof(uint32_t);
+        }
+        nodes_out->root[node_idx++] = node; // Store the node
+    }
+
+    return node_idx; 
 }
 
-void d2_print_tree( LocalTreeStore* nodes_out )
-{
-    /* implement this */
+
+void display_node(LocalTreeStore *store, int index, int level) {
+    for (int j = 0; j < level; j++) {
+
+        printf("--"); // Indent based on the level of depth
+    }
+
+    //Print the Node inside the tree
+    NetNode *current = &store->root[index];
+    printf("id: %d, value: %d, children: %d\n", current->id, current->value, current->num_children);
+
+    // Gotta love recursion, do the same for children
+    for (int i = 0; i < current->num_children; i++) {
+        display_node(store, current->child_id[i], level + 1);
+    }
 }
 
+void d2_print_tree(LocalTreeStore *store) {
+    if (store != NULL && store->root != NULL) {
+        display_node(store, 0, 0); // Start from the root with depth 0
+    } else {
+        printf("Empty or uninitialized tree.\n");
+    }
+}

@@ -19,11 +19,6 @@
 #define PRINT_DEBUG_INFO 0
 
 
-void check_error(int res, char *msg, int line, char* file) {
-    if(res == -1) {
-        print_error_line(line, file, msg);
-    }
-};
 
 void print_error_line(int line, char* file, char* message) {
     printf("\033[0;31m✘: D1 Error: %s\033[0m\n", message );
@@ -36,6 +31,12 @@ void print_line(int line, const char *file, const char *message) {
         printf("\033[0;36m \t--> Done D1 task { \033[1;39m%s\033[1;39m  } \033[0m\n\n", message);
     }
 }
+
+void check_error(int res, char *msg, int line, char* file) {
+    if(res == -1) {
+        print_error_line(line, file, msg);
+    }
+};
 
 /**
  *This function calculates the checsum as described in the handout/ChecksumExplanation.md
