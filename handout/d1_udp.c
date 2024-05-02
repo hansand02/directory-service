@@ -19,6 +19,9 @@
 #define PRINT_DEBUG_INFO 0
 
 
+/* 
+* START HELPER FUNCTIONS
+ */
 
 void print_error_line(int line, char* file, char* message) {
     printf("\033[0;31m✘: D1 Error: %s\033[0m\n", message );
@@ -37,6 +40,7 @@ void check_error(int res, char *msg, int line, char* file) {
         print_error_line(line, file, msg);
     }
 };
+
 
 /**
  *This function calculates the checsum as described in the handout/ChecksumExplanation.md
@@ -72,10 +76,20 @@ uint16_t calculate_checksum(char* newBuffer, int size) {
     return checksum;
 }
 
+/**
+ * Resets the socket options for the given D1Peer.
+ * Used to reset socket after wait_ack, which sets the timeout to 1 second. 
+ *
+ * @param peer The D1Peer for which to reset the socket options.
+ */
 void reset_socket_options(D1Peer* peer) {
     // Reset the socket options to standard values
     setsockopt(peer->socket, SOL_SOCKET, SO_RCVTIMEO, NULL, 0);
 }
+
+/* 
+* END HELPER FUNCTIONS
+ */
 
 /** 
  * 
@@ -105,6 +119,13 @@ D1Peer* d1_create_client() {
     return peer;
 }
 
+
+/**
+ * Deletes a D1Peer object.
+ *
+ * @param peer The D1Peer object to be deleted.
+ * @return always NULL. Type is D1Peer* only so that the test files can assign client = d1_delete(client);
+ */
 D1Peer* d1_delete( D1Peer* peer ) {
     // delete the peer and close the socketfd
     if (peer != NULL) {
@@ -224,7 +245,7 @@ int d1_wait_ack(D1Peer* peer, char* buffer, size_t sz) {
         ssize_t bytes_received = recvfrom(peer->socket, received_packet, sz + sizeof(D1Header), 0, (struct sockaddr*)&(peer->addr), &fromlen);
         if(bytes_received == -1) {
             reset_socket_options(peer);
-            check_error(bytes_received, "timeout, ack not received", __LINE__, __FILE__);
+            check_error(bytes_received, "timeout, ack not received, is server turned on?", __LINE__, __FILE__);
             return -1;
         }
 
