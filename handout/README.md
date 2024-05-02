@@ -52,4 +52,7 @@ The program assumes that the input given is of correct types. E.g., will we only
 #### Recursion
 The program also uses recursion and some infinite while loops. Which could go on forever if the server has some really unexpected behaviour, like not sending anything. The printing of the tree also relies on there not being any loops in the nodes, but this should not be possible either i guess.
 
+#### On servers
+All of the development has been done on login.ifi.uio.no, on a ifi machine, so i have removed all server folders except for linux-intel-redhat-8.9
+
 ---
